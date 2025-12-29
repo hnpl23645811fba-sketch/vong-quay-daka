@@ -2,240 +2,142 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Vòng Quay May Mắn - DAKA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tri ân khách hàng – DAKA COFFEE</title>
 
 <style>
-*{
-  box-sizing:border-box;
-  font-family:Arial, sans-serif;
-}
-
 body{
   margin:0;
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:linear-gradient(135deg,#0f3d2e,#1b5e20,#2e7d32);
-}
-
-.game{
-  width:380px;
-  background:#fff;
-  border-radius:28px;
-  padding:25px 20px 30px;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle, #ffcc00, #ff6600);
   text-align:center;
-  box-shadow:0 25px 50px rgba(0,0,0,.45);
-}
-
-.logo img{
-  width:80px;
-}
-
-.logo h1{
-  font-size:20px;
-  margin:6px 0 12px;
-  color:#1b5e20;
-}
-
-input{
-  width:100%;
-  padding:12px;
-  border-radius:25px;
-  border:1px solid #ccc;
-  font-size:15px;
-  text-align:center;
-  margin:6px 0;
-}
-
-#wheel-box{
-  position:relative;
-  width:260px;
-  height:260px;
-  margin:20px auto;
-}
-
-.pointer{
-  position:absolute;
-  top:-18px;
-  left:50%;
-  transform:translateX(-50%);
-  border-left:14px solid transparent;
-  border-right:14px solid transparent;
-  border-bottom:24px solid #e53935;
-  z-index:10;
-}
-
-#wheel{
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  background:conic-gradient(
-    #ff1744,
-    #ff9100,
-    #ffee58,
-    #00e676,
-    #00b0ff,
-    #651fff,
-    #ff1744
-  );
-  transition:transform 4s cubic-bezier(.17,.67,.19,1);
-  box-shadow:
-    inset 0 0 30px rgba(255,255,255,.6),
-    inset 0 0 40px rgba(0,0,0,.25),
-    0 15px 35px rgba(0,0,0,.45);
-}
-
-button{
-  padding:14px 34px;
-  border:none;
-  border-radius:40px;
-  font-size:16px;
-  font-weight:bold;
   color:#fff;
-  background:linear-gradient(45deg,#1b5e20,#66bb6a);
+}
+.logo{
+  width:120px;
+  margin-top:15px;
+}
+h1{
+  margin:10px 0;
+  font-size:28px;
+  text-shadow:2px 2px 5px #000;
+}
+#wheel{
+  width:320px;
+  height:320px;
+  border-radius:50%;
+  border:10px solid #fff;
+  margin:20px auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  font-weight:bold;
+  background:#d62828;
+}
+button{
+  padding:15px 30px;
+  font-size:18px;
+  border:none;
+  border-radius:30px;
+  background:#00c853;
+  color:#fff;
   cursor:pointer;
-  margin:6px;
 }
-
-/* ẨN NÚT QUẢN LÝ */
-#exportBtn{
-  display:none;
+button:disabled{
+  background:gray;
 }
-
-/* POPUP */
 .popup{
   position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
   display:none;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
 }
-
-.popup-box{
+.popup-content{
   background:#fff;
-  width:300px;
-  padding:30px;
-  border-radius:25px;
-  text-align:center;
+  color:#000;
+  padding:25px;
+  border-radius:15px;
+  width:85%;
+  max-width:350px;
+}
+.popup h2{
+  color:#e53935;
 }
 </style>
 </head>
 
 <body>
 
-<div class="game">
+<img src="LOGO DAKA.png" class="logo">
+<h1>🎉 TRI ÂN KHÁCH HÀNG 🎉</h1>
 
-  <div class="logo">
-    <img src="logo.png">
-    <h1>DAKA COFFEE</h1>
-  </div>
+<div id="wheel">🎡 VÒNG QUAY 🎡</div>
 
-  <!-- KHÁCH -->
-  <input id="phone" placeholder="Nhập số điện thoại">
-
-  <div id="wheel-box">
-    <div class="pointer"></div>
-    <div id="wheel"></div>
-  </div>
-
-  <button onclick="spin()">QUAY NGAY</button>
-
-  <hr style="margin:15px 0">
-
-  <!-- CHỦ QUÁN -->
-  <input id="adminPass" placeholder="Mật khẩu chủ quán">
-  <button onclick="unlockAdmin()">MỞ QUẢN LÝ</button>
-  <button id="exportBtn" onclick="exportExcel()">📊 XUẤT DANH SÁCH</button>
-
-</div>
+<button id="spinBtn">QUAY NGAY</button>
 
 <div class="popup" id="popup">
-  <div class="popup-box">
-    <h3>🎉 CHÚC MỪNG 🎉</h3>
+  <div class="popup-content">
+    <h2>🎁 CHÚC MỪNG 🎁</h2>
     <p id="result"></p>
     <button onclick="closePopup()">OK</button>
   </div>
 </div>
 
 <script>
-let degree = 0;
-const STORAGE = "DAKA_WINNERS";
-const ADMIN_PASSWORD = "DAKA0974656346"; // 🔐 ĐỔI MẬT KHẨU TẠI ĐÂY
-
 const prizes = [
- "1 ly cà phê sữa",
- "1 ly cà phê đen",
- "1 ly bạc xỉu",
- "1 ly cacao sữa",
- "Giảm 10%",
- "Giảm 30%",
- "Miễn phí 100%"
+"1 ly cà phê sữa",
+"1 ly cà phê đen",
+"1 ly nước cam",
+"1 ly bạc xỉu",
+"1 ly cacao sữa",
+"1 ly yogurt",
+"1 ly yogurt việt quất",
+"1 ly soda việt quất",
+"Miễn phí 100%",
+"Giảm 50%",
+"Giảm 30%",
+"Giảm 10%",
+"1 lon Coca",
+"1 lon Pepsi",
+"1 lon 7Up",
+"1 lon Sting đỏ",
+"1 lon Sting vàng",
+"1 chai Revive",
+"1 chai C2",
+"1 chai Không Độ"
+"1 ly sâm bí đao",
 ];
 
-function spin(){
-  const phone = document.getElementById("phone").value.trim();
-  if(phone === ""){
-    alert("Vui lòng nhập số điện thoại!");
-    return;
-  }
+const spinBtn = document.getElementById("spinBtn");
+const popup = document.getElementById("popup");
+const result = document.getElementById("result");
 
-  let list = JSON.parse(localStorage.getItem(STORAGE) || "[]");
-  if(list.find(x => x.phone === phone)){
-    alert("Số điện thoại này đã quay rồi!");
-    return;
-  }
+if(localStorage.getItem("played")){
+  spinBtn.disabled = true;
+  spinBtn.innerText = "BẠN ĐÃ QUAY RỒI";
+}
 
-  const index = Math.floor(Math.random() * prizes.length);
-  degree += 360 * 6 + index * (360 / prizes.length);
-  document.getElementById("wheel").style.transform = `rotate(${degree}deg)`;
+spinBtn.onclick = () => {
+  const prize = prizes[Math.floor(Math.random()*prizes.length)];
+  localStorage.setItem("played","true");
 
-  setTimeout(()=>{
-    document.getElementById("result").innerText = "Bạn trúng: " + prizes[index];
-    document.getElementById("popup").style.display = "flex";
+  // lưu kết quả cho chủ quán
+  let data = JSON.parse(localStorage.getItem("winners") || "[]");
+  data.push({ prize, time: new Date().toLocaleString() });
+  localStorage.setItem("winners", JSON.stringify(data));
 
-    list.push({
-      phone: phone,
-      prize: prizes[index],
-      time: new Date().toLocaleString()
-    });
-
-    localStorage.setItem(STORAGE, JSON.stringify(list));
-  },4000);
+  result.innerText = prize;
+  popup.style.display = "flex";
+  spinBtn.disabled = true;
+  spinBtn.innerText = "ĐÃ QUAY";
 }
 
 function closePopup(){
-  document.getElementById("popup").style.display = "none";
-}
-
-function unlockAdmin(){
-  const pass = document.getElementById("adminPass").value;
-  if(pass === ADMIN_PASSWORD){
-    document.getElementById("exportBtn").style.display = "inline-block";
-    alert("Mở quyền quản lý thành công!");
-  }else{
-    alert("Sai mật khẩu!");
-  }
-}
-
-function exportExcel(){
-  let list = JSON.parse(localStorage.getItem(STORAGE) || "[]");
-  if(list.length === 0){
-    alert("Chưa có dữ liệu!");
-    return;
-  }
-
-  let csv = "SĐT,Phần thưởng,Thời gian\n";
-  list.forEach(x=>{
-    csv += `${x.phone},${x.prize},${x.time}\n`;
-  });
-
-  const blob = new Blob([csv], {type:"text/csv"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "danh_sach_trung_qua.csv";
-  a.click();
+  popup.style.display = "none";
 }
 </script>
 
