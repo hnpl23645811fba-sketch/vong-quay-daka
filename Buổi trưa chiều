@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Tri Ân Khách Hàng - DAKA COFFEE</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#0f3d2e,#1b5e20,#2e7d32);
+}
+
+.game{
+  width:380px;
+  background:#ffffff;
+  border-radius:28px;
+  padding:25px 20px 30px;
+  text-align:center;
+  box-shadow:0 25px 50px rgba(0,0,0,.45);
+}
+
+.logo img{
+  width:80px;
+}
+
+.logo h1{
+  font-size:18px;
+  margin:6px 0 12px;
+  color:#1b5e20;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  border-radius:25px;
+  border:1px solid #ccc;
+  font-size:15px;
+  text-align:center;
+  margin:6px 0;
+}
+
+#wheel-box{
+  position:relative;
+  width:260px;
+  height:260px;
+  margin:20px auto;
+}
+
+.pointer{
+  position:absolute;
+  top:-18px;
+  left:50%;
+  transform:translateX(-50%);
+  border-left:14px solid transparent;
+  border-right:14px solid transparent;
+  border-bottom:24px solid #ffd54f;
+  z-index:10;
+}
+
+#wheel{
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:conic-gradient(
+    #1b5e20 0deg 19deg,
+    #2e7d32 19deg 38deg,
+    #388e3c 38deg 57deg,
+    #43a047 57deg 76deg,
+    #66bb6a 76deg 95deg,
+    #81c784 95deg 114deg,
+    #a5d6a7 114deg 133deg,
+    #c8e6c9 133deg 152deg,
+    #1b5e20 152deg 171deg,
+    #2e7d32 171deg 190deg,
+    #388e3c 190deg 209deg,
+    #43a047 209deg 228deg,
+    #66bb6a 228deg 247deg,
+    #81c784 247deg 266deg,
+    #a5d6a7 266deg 285deg,
+    #c8e6c9 285deg 304deg,
+    #1b5e20 304deg 323deg,
+    #2e7d32 323deg 342deg,
+    #388e3c 342deg 360deg
+  );
+  transition:transform 4s cubic-bezier(.17,.67,.19,1);
+  box-shadow:
+    inset 0 0 25px rgba(255,255,255,.6),
+    inset 0 0 30px rgba(0,0,0,.25),
+    0 15px 35px rgba(0,0,0,.45);
+}
+
+button{
+  padding:14px 34px;
+  border:none;
+  border-radius:40px;
+  font-size:16px;
+  font-weight:bold;
+  color:#fff;
+  background:linear-gradient(45deg,#1b5e20,#66bb6a);
+  cursor:pointer;
+  margin:6px;
+}
+
+#exportBtn{ display:none; }
+
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.popup-box{
+  background:#fff;
+  width:300px;
+  padding:30px;
+  border-radius:25px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+  <div class="logo">
+    <img src="logo.png">
+    <h1>🎉 TRI ÂN KHÁCH HÀNG<br>DAKA COFFEE</h1>
+  </div>
+
+  <input id="phone" placeholder="Nhập số điện thoại">
+
+  <div id="wheel-box">
+    <div class="pointer"></div>
+    <div id="wheel"></div>
+  </div>
+
+  <button onclick="spin()">🎁 QUAY NGAY</button>
+
+  <hr style="margin:15px 0">
+
+  <input id="adminPass" placeholder="Mật khẩu chủ quán">
+  <button onclick="unlockAdmin()">🔐 MỞ QUẢN LÝ</button>
+  <button id="exportBtn" onclick="exportExcel()">📊 XUẤT DANH SÁCH</button>
+
+</div>
+
+<div class="popup" id="popup">
+  <div class="popup-box">
+    <h3>🎊 CHÚC MỪNG 🎊</h3>
+    <p id="result"></p>
+    <button onclick="closePopup()">OK</button>
+  </div>
+</div>
+
+<script>
+let degree = 0;
+const STORAGE = "DAKA_WINNERS";
+const ADMIN_PASSWORD = "daka0974566346";
+
+const prizes = [
+  "1 ly đá me","1 ly tắc xí muội","1 ly chanh muối","1 ly nước cam","1 ly trà tắc",
+  "1 ly cacao sữa","1 ly yogurt","1 ly yogurt việt quất","1 ly cacao muối",
+  "1 ly soda việt quất","1 lon Coca","1 lon Pepsi","1 ly cafe muối","1 sâm dứa sữa",
+  "1 lon 7Up","1 lon Sting đỏ","1 lon Sting vàng","1 trái dừa lạnh",
+  "1 chai Revive","1 chai C2","1 chai Không Độ","1 ly sâm bí đao","1 ly đá chanh",
+  "1 ly sâm dứa bạc hà","1 ly lipton","1 ly rau má sữa đậu","1 ly chanh dây",
+];
+
+function spin(){
+  const phone = document.getElementById("phone").value.trim();
+  if(!phone){
+    alert("Vui lòng nhập số điện thoại!");
+    return;
+  }
+
+  let list = JSON.parse(localStorage.getItem(STORAGE) || "[]");
+  if(list.find(x => x.phone === phone)){
+    alert("Số điện thoại này đã quay rồi!");
+    return;
+  }
+
+  const index = Math.floor(Math.random() * prizes.length);
+  const slice = 360 / prizes.length;
+
+  degree += 360 * 6 + index * slice;
+  document.getElementById("wheel").style.transform = `rotate(${degree}deg)`;
+
+  setTimeout(()=>{
+    document.getElementById("result").innerText =
+      "🎁 Bạn trúng: " + prizes[index];
+
+    document.getElementById("popup").style.display = "flex";
+
+    list.push({
+      phone,
+      prize: prizes[index],
+      time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem(STORAGE, JSON.stringify(list));
+  },4000);
+}
+
+function closePopup(){
+  document.getElementById("popup").style.display = "none";
+}
+
+function unlockAdmin(){
+  if(document.getElementById("adminPass").value === ADMIN_PASSWORD){
+    document.getElementById("exportBtn").style.display = "inline-block";
+    alert("Đã mở quyền quản lý!");
+  } else {
+    alert("Sai mật khẩu!");
+  }
+}
+
+function exportExcel(){
+  let list = JSON.parse(localStorage.getItem(STORAGE) || "[]");
+  if(!list.length){
+    alert("Chưa có dữ liệu!");
+    return;
+  }
+
+  let csv = "SĐT,Phần thưởng,Thời gian\n";
+  list.forEach(x=>{
+    csv += `${x.phone},${x.prize},${x.time}\n`;
+  });
+
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "DAKA_trung_qua.csv";
+  a.click();
+}
+</script>
+
+</body>
+</html>
